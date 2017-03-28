@@ -1,17 +1,16 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from __future__ import print_function
+from numpy import genfromtxt
 
-
-import pandas as pd
 import urllib2
 import glob, os
 
 from matplotlib.pyplot import figure, plot, xlabel, ylabel, title, show, legend
 from datetime import date
 
-csv_v = pd.read_csv('vhi/vhi_id_11.csv', delimiter=' ')
-csv_p = pd.read_csv('percent/percent_id_11.csv', delimiter=' ')
+csv_v = genfromtxt('vhi/vhi_id_11.csv', delimiter=' ')
+csv_p = genfromtxt('percent/percent_id_11.csv', delimiter=' ')
 
 list_province = [[1, 'Cherkasy'],
                  [2, 'Chernihiv'],
@@ -43,10 +42,16 @@ list_province = [[1, 'Cherkasy'],
 
 
 def files_in_directory():
-    os.chdir("vhi")
-    print("- vhi")
-    for file in glob.glob("*.csv"):
-        print(file)
+    try:
+        os.chdir("vhi")
+        print("- vhi")
+        for file in glob.glob("*.csv"):
+            print(file)
+    except:
+        os.chdir("../vhi")
+        print("- vhi")
+        for file in glob.glob("*.csv"):
+            print(file)
     os.chdir("../percent")
     print("- percent")
     for file in glob.glob("*.csv"):
@@ -58,7 +63,7 @@ def fix_file_vhi(s_file):
     line = fi.readlines()
     with open(s_file, 'r+') as f:
         f_str = f.read().replace(line[0],
-                                 'year week SMN SMT VCI TCI VHI\n')
+                                 '')
         f.seek(0)
         f.truncate()
         f.write(f_str)
@@ -94,7 +99,7 @@ def fix_file_percent(s_file):
     line = fi.readlines()
     with open(s_file, 'r+') as f:
         f_str = f.read().replace(line[0],
-                                 'year week 0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100\n')
+                                 '')
         f.seek(0)
         f.truncate()
         f.write(f_str)
@@ -130,43 +135,77 @@ def fix_file_percent(s_file):
     fi.close()
 
 
-def parser_file(province_id, year_start, year_end, t_type):
+def parser_file(province_id):
     url = "https://www.star.nesdis.noaa.gov/smcd/emb/vci/VH/get_provinceData.php?country=UKR&" \
           + "provinceID=" + str(province_id) \
-          + "&year1=" + str(year_start) \
-          + "&year2=" + str(year_end) \
-          + "&type=" + str(t_type)
+          + "&year1=1981&year2=2017&type=Mean"
     vhi_url = urllib2.urlopen(url)
 
-    if (t_type == 'Mean'):
+    try:
         out = open('../vhi/vhi_id_' + str(province_id) + '_' + str(date.today()) + '.csv', 'wb')
         out.write(vhi_url.read())
         out.close()
         try:
             s_file = '../vhi/vhi_id_' + str(province_id) + '_' + str(date.today()) + '.csv'
             fix_file_vhi(s_file)
-        except ZeroDivisionError:
-            print(ZeroDivisionError.message)
-    elif (t_type == 'VHI_Parea'):
+        except:
+            s_file = 'vhi/vhi_id_' + str(province_id) + '_' + str(date.today()) + '.csv'
+            fix_file_vhi(s_file)
+    except:
+        out = open('vhi/vhi_id_' + str(province_id) + '_' + str(date.today()) + '.csv', 'wb')
+        out.write(vhi_url.read())
+        out.close()
+        try:
+            s_file = 'vhi/vhi_id_' + str(province_id) + '_' + str(date.today()) + '.csv'
+            fix_file_vhi(s_file)
+        except:
+            s_file = '../vhi/vhi_id_' + str(province_id) + '_' + str(date.today()) + '.csv'
+            fix_file_vhi(s_file)
+
+    url = "https://www.star.nesdis.noaa.gov/smcd/emb/vci/VH/get_provinceData.php?country=UKR&" \
+          + "provinceID=" + str(province_id) \
+          + "&year1=1981&year2=2017&type=VHI_Parea"
+    vhi_url = urllib2.urlopen(url)
+
+    try:
+        out = open('percent/percent_id_' + str(province_id) + '_' + str(date.today()) + '.csv', 'wb')
+        out.write(vhi_url.read())
+        out.close()
+        try:
+            s_file = 'percent/percent_id_' + str(province_id) + '_' + str(date.today()) + '.csv'
+            fix_file_percent(s_file)
+        except:
+            s_file = '../percent/percent_id_' + str(province_id) + '_' + str(date.today()) + '.csv'
+            fix_file_percent(s_file)
+    except:
         out = open('../percent/percent_id_' + str(province_id) + '_' + str(date.today()) + '.csv', 'wb')
         out.write(vhi_url.read())
         out.close()
         try:
             s_file = '../percent/percent_id_' + str(province_id) + '_' + str(date.today()) + '.csv'
             fix_file_percent(s_file)
-        except ZeroDivisionError:
-            print(ZeroDivisionError.message)
+        except:
+            s_file = 'percent/percent_id_' + str(province_id) + '_' + str(date.today()) + '.csv'
+            fix_file_percent(s_file)
 
 
 def analyzing_by_year(year):
-    list_week = csv_v["week"][(csv_v["year"]) == year]
-    list_vhi = csv_v["VHI"][(csv_v["year"]) == year]
+    list_week = []
+    list_vhi = []
+
+    c = 0
+
+    for bich in csv_v:
+        if (csv_v[c][0] == year):
+            list_week.append(csv_v[c][1])
+            list_vhi.append(csv_v[c][6])
+        c += 1
 
     figure()
     plot(list_week, list_vhi, 'r')
     xlabel('week')
     ylabel('vhi')
-    title('Graphic VHI for ' + str(year) + ' years')
+    title('Graphic VHI for ' + str(year) + ' year')
     show()
 
     print(66 * "-")
@@ -177,16 +216,26 @@ def analyzing_by_year(year):
     choose = input("Enter choose: ")
 
     if choose == 1:
-        print(min((csv_v['VHI'][(csv_v["year"]) == year])))
+        print(min(list_vhi))
     elif choose == 2:
-        print(max(csv_v['VHI'][(csv_v["year"]) == year]))
+        print(max(list_vhi))
 
 
 def analyzing_by_two_year(year_1, year_2):
-    list_week1 = csv_v["week"][(csv_v["year"]) == year_1]
-    list_vhi1 = csv_v["VHI"][(csv_v["year"]) == year_1]
-    list_week2 = csv_v["week"][(csv_v["year"]) == year_2]
-    list_vhi2 = csv_v["VHI"][(csv_v["year"]) == year_2]
+    list_week1 = []
+    list_vhi1 = []
+    list_week2 = []
+    list_vhi2 = []
+
+    c = 0
+    for bich in csv_v:
+        if (csv_v[c][0] == year_1):
+            list_week1.append(csv_v[c][1])
+            list_vhi1.append(csv_v[c][6])
+        elif (csv_v[c][0] == year_2):
+            list_week2.append(csv_v[c][1])
+            list_vhi2.append(csv_v[c][6])
+        c += 1
 
     figure()
     plot(list_week1, list_vhi1, 'r', label=str(year_1))
@@ -199,38 +248,49 @@ def analyzing_by_two_year(year_1, year_2):
 
 
 def choose_default_files(province_id, date_in):
-    csv_v = pd.read_csv('../vhi/vhi_id_' + str(province_id) + '_' + str(date_in) + '.csv', delimiter=' ')
-    csv_p = pd.read_csv('../percent/percent_id_' + str(province_id) + '_' + str(date_in) + '.csv', delimiter=' ')
+    csv_v = genfromtxt('../vhi/vhi_id_' + str(province_id) + '_' + str(date_in) + '.csv', delimiter=' ')
+    csv_p = genfromtxt('../percent/percent_id_' + str(province_id) + '_' + str(date_in) + '.csv', delimiter=' ')
 
 
 def sorting_by_ext_md(year):
-    i = 10
-    while i <= 30:
-        x = str(
-            csv_p['0'][((csv_p["year"]) == year) & (csv_p["week"] == i)] +
-            csv_p['5'][((csv_p["year"]) == year) & (csv_p["week"] == i)] +
-            csv_p['10'][((csv_p["year"]) == year) & (csv_p["week"] == i)] +
-            csv_p['15'][((csv_p["year"]) == year) & (csv_p["week"] == i)]
-        )
-        if (x <= 15):
-            print("Week: " + str(i) + ";\nExtreme!\nVHI: " + x + ";")
-        i += 1
+    x = []
 
+    c = 0
     i = 10
-    while i <= 30:
-        x = x = str(
-            csv_p['0'][((csv_p["year"]) == year) & (csv_p["week"] == i)] +
-            csv_p['5'][((csv_p["year"]) == year) & (csv_p["week"] == i)] +
-            csv_p['10'][((csv_p["year"]) == year) & (csv_p["week"] == i)] +
-            csv_p['15'][((csv_p["year"]) == year) & (csv_p["week"] == i)] +
-            csv_p['20'][((csv_p["year"]) == year) & (csv_p["week"] == i)] +
-            csv_p['25'][((csv_p["year"]) == year) & (csv_p["week"] == i)] +
-            csv_p['30'][((csv_p["year"]) == year) & (csv_p["week"] == i)] +
-            csv_p['35'][((csv_p["year"]) == year) & (csv_p["week"] == i)]
-        )
-        if (x <= 35):
-            print("Week: " + str(i) + ";\nModerate!\nVHI: " + x + ";")
-        i += 1
+
+    for bich in csv_p:
+        if (i < 30):
+            if (csv_p[c][0] == year):
+                if (csv_p[c][1] == i):
+                    z = csv_p[c][2] + csv_p[c][3] + csv_p[c][4] + csv_p[c][5]
+                    x.append(str(z))
+                    i+=1
+        c += 1
+
+    c = 0
+    if (x[c] < 15):
+        print("Extreme!")
+        c+=1
+
+    x = []
+
+    c = 0
+    i = 10
+
+    for bich in csv_p:
+        if (i < 30):
+            if (csv_p[c][0] == year):
+                if (csv_p[c][1] == i):
+                    z = csv_p[c][2] + csv_p[c][3] + csv_p[c][4] + csv_p[c][5] + csv_p[c][6] + csv_p[c][7] \
+                        + csv_p[c][8] + csv_p[c][9]
+                    x.append(str(z))
+                    i += 1
+        c += 1
+
+    c = 0
+    if (x[c] < 30):
+        print("nModerate!")
+        c += 1
 
 
 def clear_console():
@@ -247,21 +307,12 @@ def print_menu():
     print("3. Graphic for one year")
     print("4. Graphic for two years")
     print("5. Sorting")
-    print("6. ")
-    print("7. ")
-    print("8. ")
-    print("9. ")
     print("0. Exit")
     print(70 * "-")
 
 
 def main():
-    files_in_directory()
-    province_id = input("Enter province id: ")
-    date_in = raw_input("Input date (yyyy-mm-dd): ")
-    choose_default_files(province_id, date_in)
-
-    clear_console()
+    print("By default choose: vhi_id_11")
 
     loop = True
 
@@ -273,22 +324,18 @@ def main():
         if choose == 1:
             print(list_province)
             province_id = input("Choose province and input him [id] (1st column): ")
-            year_start = input("Input start year: ")
-            year_end = input("Input end year: ")
-            choose = input("Choose type: \n1 - Mean; \n2 - VHI_Parea; ")
-            if (choose == 1):
-                t_type = 'Mean'
-                parser_file(province_id, year_start, year_end, t_type)
-            elif (choose == 2):
-                t_type = 'VHI_Parea'
-                parser_file(province_id, year_start, year_end, t_type)
+            parser_file(province_id)
+            files_in_directory()
+            province_id = input("Enter province id: ")
+            date_in = raw_input("Input date (yyyy-mm-dd): ")
+            choose_default_files(province_id, date_in)
         elif choose == 2:
             files_in_directory()
             province_id = input("Enter province id: ")
             date_in = raw_input("Input date (yyyy-mm-dd): ")
             choose_default_files(province_id, date_in)
         elif choose == 3:
-            year = input("Enter first year: ")
+            year = input("Enter year: ")
             analyzing_by_year(year)
         elif choose == 4:
             year_1 = input("Enter first year: ")
