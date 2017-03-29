@@ -9,8 +9,6 @@ import glob, os
 from matplotlib.pyplot import figure, plot, xlabel, ylabel, title, show, legend
 from datetime import date
 
-csv_v = genfromtxt('vhi/vhi_id_11.csv', delimiter=' ')
-csv_p = genfromtxt('percent/percent_id_11.csv', delimiter=' ')
 
 list_province = [[1, 'Cherkasy'],
                  [2, 'Chernihiv'],
@@ -189,7 +187,7 @@ def parser_file(province_id):
             fix_file_percent(s_file)
 
 
-def analyzing_by_year(year):
+def analyzing_by_year(year, csv_v):
     list_week = []
     list_vhi = []
 
@@ -221,7 +219,7 @@ def analyzing_by_year(year):
         print(max(list_vhi))
 
 
-def analyzing_by_two_year(year_1, year_2):
+def analyzing_by_two_year(year_1, year_2, csv_v):
     list_week1 = []
     list_vhi1 = []
     list_week2 = []
@@ -247,49 +245,59 @@ def analyzing_by_two_year(year_1, year_2):
     show()
 
 
-def choose_default_files(province_id, date_in):
-    csv_v = genfromtxt('../vhi/vhi_id_' + str(province_id) + '_' + str(date_in) + '.csv', delimiter=' ')
-    csv_p = genfromtxt('../percent/percent_id_' + str(province_id) + '_' + str(date_in) + '.csv', delimiter=' ')
+def choose_default_vhi(province_id, date_in):
+    try:
+        csv_v = genfromtxt('vhi/vhi_id_' + str(province_id) + '_' + str(date_in) + '.csv', delimiter=' ')
+    except:
+        csv_v = genfromtxt('../vhi/vhi_id_' + str(province_id) + '_' + str(date_in) + '.csv', delimiter=' ')
+    return csv_v
 
 
-def sorting_by_ext_md(year):
+def choose_default_percent(province_id, date_in):
+    try:
+        csv_p = genfromtxt('percent/percent_id_' + str(province_id) + '_' + str(date_in) + '.csv', delimiter=' ')
+    except:
+        csv_p = genfromtxt('../percent/percent_id_' + str(province_id) + '_' + str(date_in) + '.csv', delimiter=' ')
+    return csv_p
+
+
+def sorting_by_ext_md(year, csv_p):
+    print("*" * 10, "Moderate", "*" * 10)
+
     x = []
+    w = []
 
     c = 0
-    i = 10
-
     for bich in csv_p:
-        if (i < 30):
-            if (csv_p[c][0] == year):
-                if (csv_p[c][1] == i):
-                    z = csv_p[c][2] + csv_p[c][3] + csv_p[c][4] + csv_p[c][5]
-                    x.append(str(z))
-                    i+=1
+        if (csv_p[c][0] == year):
+            x.append(csv_p[c][2] + csv_p[c][3] + csv_p[c][4] + csv_p[c][5])
+            w.append(csv_p[c][1])
         c += 1
 
     c = 0
-    if (x[c] < 15):
-        print("Extreme!")
-        c+=1
+    for bich in x:
+        if (x[c] <= 30):
+            print("Week: " + str(w[c]) + "; Extreme!")
+        c += 1
+
+    print("*" * 10, "Moderate", "*" * 10)
 
     x = []
+    w = []
 
     c = 0
-    i = 10
-
     for bich in csv_p:
-        if (i < 30):
-            if (csv_p[c][0] == year):
-                if (csv_p[c][1] == i):
-                    z = csv_p[c][2] + csv_p[c][3] + csv_p[c][4] + csv_p[c][5] + csv_p[c][6] + csv_p[c][7] \
-                        + csv_p[c][8] + csv_p[c][9]
-                    x.append(str(z))
-                    i += 1
+        if (csv_p[c][0] == year):
+            x.append(csv_p[c][2] + csv_p[c][3] + csv_p[c][4] + csv_p[c][5] + csv_p[c][6] + csv_p[c][7] + csv_p[c][8]
+                     + csv_p[c][9])
+            w.append(csv_p[c][1])
         c += 1
 
     c = 0
-    if (x[c] < 30):
-        print("nModerate!")
+    for bich in x:
+        if (x[c] <= 50):
+            if (x[c] > 30):
+                print("Week: " + str(w[c]) + "; Moderate!")
         c += 1
 
 
@@ -312,7 +320,8 @@ def print_menu():
 
 
 def main():
-    print("By default choose: vhi_id_11")
+    csv_v = choose_default_vhi("4", "2017-03-29")
+    csv_p = choose_default_percent("4", "2017-03-29")
 
     loop = True
 
@@ -328,22 +337,24 @@ def main():
             files_in_directory()
             province_id = input("Enter province id: ")
             date_in = raw_input("Input date (yyyy-mm-dd): ")
-            choose_default_files(province_id, date_in)
+            csv_v = choose_default_vhi(province_id, date_in)
+            csv_p = choose_default_percent(province_id, date_in)
         elif choose == 2:
             files_in_directory()
             province_id = input("Enter province id: ")
             date_in = raw_input("Input date (yyyy-mm-dd): ")
-            choose_default_files(province_id, date_in)
+            csv_v = choose_default_vhi(province_id, date_in)
+            csv_p = choose_default_percent(province_id, date_in)
         elif choose == 3:
             year = input("Enter year: ")
-            analyzing_by_year(year)
+            analyzing_by_year(year, csv_v)
         elif choose == 4:
             year_1 = input("Enter first year: ")
             year_2 = input("Enter second year: ")
-            analyzing_by_two_year(year_1, year_2)
+            analyzing_by_two_year(year_1, year_2, csv_v)
         elif choose == 5:
             year = input("Input year: ")
-            sorting_by_ext_md(year)
+            sorting_by_ext_md(year, csv_p)
         elif choose == 0:
             loop = False
 
