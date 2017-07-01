@@ -3,12 +3,11 @@
 from __future__ import print_function
 from numpy import genfromtxt
 
-import urllib2
+from urllib.request import urlopen
 import glob, os
 
 from matplotlib.pyplot import figure, plot, xlabel, ylabel, title, show, legend
 from datetime import date
-
 
 list_province = [[1, 'Cherkasy'],
                  [2, 'Chernihiv'],
@@ -137,7 +136,7 @@ def parser_file(province_id):
     url = "https://www.star.nesdis.noaa.gov/smcd/emb/vci/VH/get_provinceData.php?country=UKR&" \
           + "provinceID=" + str(province_id) \
           + "&year1=1981&year2=2017&type=Mean"
-    vhi_url = urllib2.urlopen(url)
+    vhi_url = urlopen(url)
 
     try:
         out = open('../vhi/vhi_id_' + str(province_id) + '_' + str(date.today()) + '.csv', 'wb')
@@ -163,7 +162,7 @@ def parser_file(province_id):
     url = "https://www.star.nesdis.noaa.gov/smcd/emb/vci/VH/get_provinceData.php?country=UKR&" \
           + "provinceID=" + str(province_id) \
           + "&year1=1981&year2=2017&type=VHI_Parea"
-    vhi_url = urllib2.urlopen(url)
+    vhi_url = urlopen(url)
 
     try:
         out = open('percent/percent_id_' + str(province_id) + '_' + str(date.today()) + '.csv', 'wb')
