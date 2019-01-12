@@ -210,7 +210,7 @@ def analyzing_by_year(year, csv_v):
     print("2. Maximum VHI")
     print(66 * "-")
 
-    choose = input("Enter choose: ")
+    choose = int(input("Enter choose: "))
 
     if choose == 1:
         print(min(list_vhi))
@@ -318,7 +318,7 @@ def print_menu():
     print(70 * "-")
 
 
-def main():
+if __name__ == '__main__':
     csv_v = choose_default_vhi("4", "2017-03-29")
     csv_p = choose_default_percent("4", "2017-03-29")
 
@@ -327,36 +327,32 @@ def main():
     while loop:
         print_menu()
 
-        choose = input("Enter your choose: ")
+        choose = int(input("Enter your choose: "))
 
         if choose == 1:
-            print(list_province)
-            province_id = input("Choose province and input him [id] (1st column): ")
+            print(*list_province, sep='\n')
+            province_id = int(input("Choose province and input him [id] (1st column): "))
             parser_file(province_id)
             files_in_directory()
-            province_id = input("Enter province id: ")
-            date_in = raw_input("Input date (yyyy-mm-dd): ")
+            province_id = int(input("Enter province id: "))
+            date_in = input("Input date (yyyy-mm-dd): ")
             csv_v = choose_default_vhi(province_id, date_in)
             csv_p = choose_default_percent(province_id, date_in)
         elif choose == 2:
             files_in_directory()
-            province_id = input("Enter province id: ")
-            date_in = raw_input("Input date (yyyy-mm-dd): ")
+            province_id = int(input("Enter province id: "))
+            date_in = input("Input date (yyyy-mm-dd): ")
             csv_v = choose_default_vhi(province_id, date_in)
             csv_p = choose_default_percent(province_id, date_in)
         elif choose == 3:
-            year = input("Enter year: ")
+            year = int(input("Enter year: "))
             analyzing_by_year(year, csv_v)
         elif choose == 4:
-            year_1 = input("Enter first year: ")
-            year_2 = input("Enter second year: ")
+            year_1 = int(input("Enter first year: "))
+            year_2 = int(input("Enter second year: "))
             analyzing_by_two_year(year_1, year_2, csv_v)
         elif choose == 5:
-            year = input("Input year: ")
+            year = int(input("Input year: "))
             sorting_by_ext_md(year, csv_p)
         elif choose == 0:
             loop = False
-
-
-if __name__ == '__main__':
-    main()
