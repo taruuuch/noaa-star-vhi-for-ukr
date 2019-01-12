@@ -3,7 +3,7 @@
 Simple Python script for work with VHI data, specially for Ukraine provinces
 
 ## Dependencies
-* Python 2.7.9+
+* Python 3.7.2+
 * matplotlib
 * numpy
 
